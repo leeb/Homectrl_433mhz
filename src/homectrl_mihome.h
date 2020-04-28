@@ -3,6 +3,7 @@
 
 #include <functional>
 
+#include "homectrl_rfm69.h"
 #include "homectrl_openthings.h"
 
 
@@ -88,8 +89,12 @@ class MihomeSwitchStateMsg : public OpenThingsMsg {
 */
 
 class MiHome {
+ private:
+  Rfm69     *rfm69;
+
  public:
   MiHome();
+  void setRfm69(Rfm69&);
   void modeTransmit();
   void modeReceive();
   uint8_t receivePayload();

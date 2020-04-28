@@ -177,24 +177,27 @@ MiHome::MiHome() {
   });
 }
 
+void MiHome::setRfm69(Rfm69& rfm69) {
+  this->rfm69 = &rfm69;
+}
+
 void MiHome::modeTransmit() {
-  rfm69_set_mode_standby();
+  rfm69->setModeStandby();
 
-  rfm69_set_modulation(RF_DATAMODUL_MODULATIONTYPE_FSK);
-  rfm69_set_frequency_deviation(RF_FDEV_5000);
-  rfm69_set_frequency(RF_FRF_OPENTHINGS);
-  rfm69_set_power(RF_PALEVEL_PA1_ON | RF_PALEVEL_OUTPUTPOWER_11111);
+  rfm69->setModulation(RF_DATAMODUL_MODULATIONTYPE_FSK);
+  rfm69->setFrequencyDeviation(RF_FDEV_5000);
+  rfm69->setFrequency(RF_FRF_OPENTHINGS);
+  rfm69->setPower(RF_PALEVEL_PA1_ON | RF_PALEVEL_OUTPUTPOWER_11111);
 
-  rfm69_set_bitrate(RF_BITRATE_4800);
-  rfm69_set_preamble(3);
-  rfm69_set_sync(RF_SYNC_ON | RF_SYNC_SIZE_2, 0x2DD40000);
+  rfm69->setBitrate(RF_BITRATE_4800);
+  rfm69->setPreamble(3);
+  rfm69->setSync(RF_SYNC_ON | RF_SYNC_SIZE_2, 0x2DD40000);
 
-  rfm69_set_packet_config(RF_PACKET1_FORMAT_VARIABLE | RF_PACKET1_DCFREE_MANCHESTER, RF_PACKET2_AUTORXRESTART_ON | RF_PACKET2_AES_OFF);
-  rfm69_set_fifo_threshold(RF_FIFOTHRESH_TXSTART_FIFONOTEMPTY);
-  rfm69_set_automode(RF_AUTOMODES_ENTER_FIFONOTEMPTY | RF_AUTOMODES_EXIT_PACKETSENT | RF_AUTOMODES_INTERMEDIATE_TRANSMITTER);
+  rfm69->setPacketConfig(RF_PACKET1_FORMAT_VARIABLE | RF_PACKET1_DCFREE_MANCHESTER, RF_PACKET2_AUTORXRESTART_ON | RF_PACKET2_AES_OFF);
+  rfm69->setFifoThreshold(RF_FIFOTHRESH_TXSTART_FIFONOTEMPTY);
+  rfm69->setAutomode(RF_AUTOMODES_ENTER_FIFONOTEMPTY | RF_AUTOMODES_EXIT_PACKETSENT | RF_AUTOMODES_INTERMEDIATE_TRANSMITTER);
 
-  rfm69_wait_for(REG_IRQFLAGS1, RF_IRQFLAGS1_MODEREADY, true);
-    // logger.info('RFM69 Ready')
+  rfm69->waitFor(REG_IRQFLAGS1, RF_IRQFLAGS1_MODEREADY, true);
 }
 
 
@@ -250,23 +253,23 @@ void MiHome::dumpMessage(MiHomeMonitorMsg *msg) {
 
 
 void MiHome::modeReceive() {
-  rfm69_set_mode_rx();
+  rfm69->setModeRx();
 
-  rfm69_set_modulation(RF_DATAMODUL_MODULATIONTYPE_FSK);
-  rfm69_set_frequency_deviation(RF_FDEV_5000);
-  rfm69_set_frequency(RF_FRF_OPENTHINGS);
+  rfm69->setModulation(RF_DATAMODUL_MODULATIONTYPE_FSK);
+  rfm69->setFrequencyDeviation(RF_FDEV_5000);
+  rfm69->setFrequency(RF_FRF_OPENTHINGS);
 
-  rfm69_write_reg(REG_AFCCTRL, 0x00);
-  rfm69_write_reg(REG_LNA, RF_LNA_ZIN_50);
-  rfm69_write_reg(REG_RXBW, RF_RXBW_EXP_3 | RF_RXBW_DCCFREQ_010);
+  rfm69->writeReg(REG_AFCCTRL, 0x00);
+  rfm69->writeReg(REG_LNA, RF_LNA_ZIN_50);
+  rfm69->writeReg(REG_RXBW, RF_RXBW_EXP_3 | RF_RXBW_DCCFREQ_010);
 
-  rfm69_set_bitrate(RF_BITRATE_4800);
-  rfm69_set_preamble(3);
-  rfm69_set_sync(RF_SYNC_ON | RF_SYNC_SIZE_2, 0x2DD40000);
+  rfm69->setBitrate(RF_BITRATE_4800);
+  rfm69->setPreamble(3);
+  rfm69->setSync(RF_SYNC_ON | RF_SYNC_SIZE_2, 0x2DD40000);
 
-  rfm69_set_packet_config(RF_PACKET1_FORMAT_VARIABLE | RF_PACKET1_DCFREE_MANCHESTER, RF_PACKET2_AUTORXRESTART_ON | RF_PACKET2_AES_OFF);
-  rfm69_set_payload_length(RF_PAYLOADLENGTH_VALUE);
-  rfm69_set_automode(RF_AUTOMODES_ENTER_OFF | RF_AUTOMODES_EXIT_OFF);
+  rfm69->setPacketConfig(RF_PACKET1_FORMAT_VARIABLE | RF_PACKET1_DCFREE_MANCHESTER, RF_PACKET2_AUTORXRESTART_ON | RF_PACKET2_AES_OFF);
+  rfm69->setPayloadLength(RF_PAYLOADLENGTH_VALUE);
+  rfm69->setAutomode(RF_AUTOMODES_ENTER_OFF | RF_AUTOMODES_EXIT_OFF);
 }
 
 
@@ -387,7 +390,7 @@ uint8_t MiHome::receivePayload() {
   uint16_t seed, crc;
   uint32_t sensor_id;
 
-  len = rfm69_read_fifo(buf);
+  len = rfm69->readFifo(buf);
 
   Serial.print("Buffer received ");
   Serial.println(len);
@@ -435,9 +438,9 @@ uint8_t MiHome::receivePayload() {
 
 
 void MiHome::transmitPayload(uint8_t *buf, uint8_t len) {
-  if (rfm69_wait_for(REG_IRQFLAGS2, RF_IRQFLAGS2_FIFONOTEMPTY, false)) {
-    rfm69_write_fifo(buf, len);
-    rfm69_wait_for(REG_IRQFLAGS1, RF_IRQFLAGS1_AUTOMODE, false);    // wait for automode to clear, so transmission finished.
+  if (rfm69->waitFor(REG_IRQFLAGS2, RF_IRQFLAGS2_FIFONOTEMPTY, false)) {
+    rfm69->writeFifo(buf, len);
+    rfm69->waitFor(REG_IRQFLAGS1, RF_IRQFLAGS1_AUTOMODE, false);    // wait for automode to clear, so transmission finished.
   }
 }
 
