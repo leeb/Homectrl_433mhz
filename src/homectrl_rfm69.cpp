@@ -14,10 +14,10 @@ Rfm69::Rfm69() :
   setPins(RFM69_SS_PIN, RFM69_RST_PIN, RFM69_DIO0_PIN);
 }
 
-void Rfm69::setPins(uint8_t ss_pin, uint8_t rst_pin, uint8_t d100_pin) {
+void Rfm69::setPins(uint8_t ss_pin, uint8_t rst_pin, uint8_t dio0_pin) {
   if (ss_pin) _ss_pin = ss_pin;
   if (rst_pin) _rst_pin = rst_pin;
-  if (d100_pin) _d100_pin = d100_pin;
+  if (dio0_pin) _dio0_pin = dio0_pin;
 }
 
 void Rfm69::initialize(SPIClass* spi) {

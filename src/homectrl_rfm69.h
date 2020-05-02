@@ -45,7 +45,7 @@ class Rfm69 {
   SPISettings     _spi_settings;
   uint8_t         _ss_pin;      // slave select
   uint8_t         _rst_pin;     // reset
-  uint8_t         _d100_pin;
+  uint8_t         _dio0_pin;
   const uint32_t  _spi_clock;
 
  public:
