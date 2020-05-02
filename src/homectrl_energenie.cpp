@@ -1,3 +1,9 @@
+/**
+ * Interface for Legacy Energenie devices which receive commands using OOK modulation.
+ * Supported:
+ *   - MIHO002 Smart Plug.
+ */
+
 #include <Arduino.h>
 #include <RFM69registers.h>
 
@@ -86,6 +92,5 @@ void Energenie::transmitPayload(uint8_t *buf) {
     rfm69->waitFor(REG_IRQFLAGS1, RF_IRQFLAGS1_AUTOMODE, false);    // wait for automode to clear, so transmission finished.
   }
 }
-
 
 } // namespace homectrl

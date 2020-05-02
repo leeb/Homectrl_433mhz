@@ -1,3 +1,11 @@
+/**
+ * Interface for Energenie MiHome devices based on the OpenThings protocol.
+ * These use FSK modulation and can both transmit and receive data.
+ * Supported:
+ *   - MIHO004 Smart Monitor Plug
+ *   - MIHO005 Smart Plug Plus
+ */
+
 #include <Arduino.h>
 #include <RFM69registers.h>
 // #include <functional>

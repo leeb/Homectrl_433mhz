@@ -7,9 +7,9 @@
 #ifndef _HOMECTRL_RFM69_H_
 #define _HOMECTRL_RFM69_H_
 
-#include "homectrl_rfm69_registers.h"
+#include <SPI.h>
 
-namespace homectrl {
+#include "homectrl_rfm69_registers.h"
 
 #define RF_FDEV_5000       0x0052
 
@@ -22,9 +22,36 @@ namespace homectrl {
 #define RF_BITRATE_57600   0x022C
 
 
+#if defined ARDUINO_ARCH_ESP32
+
+#define RFM69_SPI_BUS     VSPI
+#define RFM69_SS_PIN      SS    // GPIO 5
+#define RFM69_RST_PIN     4     // GPIO 4 
+#define RFM69_DIO0_PIN    15    // GPIO 15
+
+#else   // default assumes __AVR32__
+
+#define RFM69_SS_PIN      10    //
+#define RFM69_RST_PIN     9     //
+#define RFM69_D1O0_PIN    8     //
+
+#endif
+
+namespace homectrl {
+
 class Rfm69 {
+ private:
+  SPIClass*       _spi;
+  SPISettings     _spi_settings;
+  uint8_t         _ss_pin;      // slave select
+  uint8_t         _rst_pin;     // reset
+  uint8_t         _d100_pin;
+  const uint32_t  _spi_clock;
+
  public:
-  void initialize();
+  Rfm69();
+  void setPins(uint8_t ss_pin = NULL, uint8_t rst_pin = NULL, uint8_t d100_pin = NULL);
+  void initialize(SPIClass* = NULL);
   void reset();
   void writeReg(uint8_t addr, uint8_t value);
   void writeFifo(uint8_t *data, uint8_t length);

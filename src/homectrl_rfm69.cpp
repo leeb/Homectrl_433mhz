@@ -1,54 +1,55 @@
+/**
+ * 
+ */
+
 #include <Arduino.h>
-#include <SPI.h>
 
 #include "homectrl_rfm69.h"
 
 namespace homectrl {
 
-#define RADIO_SPI        VSPI
-#define RADIO_SPI_MISO   MISO
-#define RADIO_SPI_MOSI   MOSI
-#define RADIO_SPI_SCLK   SCK
-#define RADIO_SPI_SS     SS
+Rfm69::Rfm69() : 
+  _spi_clock(1000000),
+  _spi(&SPI) {
+  setPins(RFM69_SS_PIN, RFM69_RST_PIN, RFM69_DIO0_PIN);
+}
 
-#define RADIO_RESET      4
-#define RADIO_D100       15
+void Rfm69::setPins(uint8_t ss_pin, uint8_t rst_pin, uint8_t d100_pin) {
+  if (ss_pin) _ss_pin = ss_pin;
+  if (rst_pin) _rst_pin = rst_pin;
+  if (d100_pin) _d100_pin = d100_pin;
+}
 
-//uninitalised pointers to SPI objects
-SPIClass *_spi = NULL;
-SPISettings _spi_settings;
+void Rfm69::initialize(SPIClass* spi) {
+  _spi_settings = SPISettings(_spi_clock, MSBFIRST, SPI_MODE0);
 
-
-void Rfm69::initialize() {
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(RADIO_RESET, OUTPUT);
-  pinMode(RADIO_SPI_SS, OUTPUT);
-  digitalWrite(RADIO_SPI_SS, HIGH);
+  pinMode(_rst_pin, OUTPUT);
+  pinMode(_ss_pin, OUTPUT);
+  digitalWrite(_ss_pin, HIGH);
 
-  _spi = new SPIClass(RADIO_SPI);
+  if (spi != NULL) _spi = spi;
   _spi->begin();
-  _spi_settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
-
   this->reset();
 }
 
 void Rfm69::reset() {
   digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  digitalWrite(RADIO_RESET, HIGH);
+  digitalWrite(_rst_pin, HIGH);
   delay(150);
-  digitalWrite(RADIO_RESET, LOW);
+  digitalWrite(_rst_pin, LOW);
   delay(100);
   digitalWrite(LED_BUILTIN, LOW);   // turn the LED on (HIGH is the voltage level)
 }
 
 void Rfm69::writeReg(uint8_t addr, uint8_t value) {
   _spi->beginTransaction(_spi_settings);
-  digitalWrite(RADIO_SPI_SS, LOW); //pull SS slow to prep other end for transfer
+  digitalWrite(_ss_pin, LOW); //pull SS slow to prep other end for transfer
 
   _spi->transfer(addr | 0x80);
   _spi->transfer(value);
 
-  digitalWrite(RADIO_SPI_SS, HIGH); //pull ss high to signify end of data transfer
+  digitalWrite(_ss_pin, HIGH); //pull ss high to signify end of data transfer
   _spi->endTransaction();
 }
 
@@ -60,12 +61,12 @@ void Rfm69::writeFifo(uint8_t *data, uint8_t len) {
 
 uint8_t Rfm69::readReg(uint8_t addr) {
   _spi->beginTransaction(_spi_settings);
-  digitalWrite(RADIO_SPI_SS, LOW); //pull SS slow to prep other end for transfer
+  digitalWrite(_ss_pin, LOW); //pull SS slow to prep other end for transfer
 
   _spi->transfer(addr & 0x7f);
   uint8_t val = _spi->transfer(0);
     
-  digitalWrite(RADIO_SPI_SS, HIGH); //pull ss high to signify end of data transfer
+  digitalWrite(_ss_pin, HIGH); //pull ss high to signify end of data transfer
   _spi->endTransaction();  
 
   return val;
@@ -174,7 +175,7 @@ void Rfm69::setModeStandby() {
 
 void Rfm69::regDump() {
   char str[16];
-  
+
   sprintf(str, "%02X", this->readReg(REG_PALEVEL));
   Serial.print("PALEVEL:       ");
   Serial.println(str);
