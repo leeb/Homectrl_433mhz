@@ -94,8 +94,10 @@ uint8_t Rfm69::readFifo(uint8_t *buf) {
 }
 
 bool Rfm69::isPayloadReady() {
-  if (this->readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY) {
-    return true;
+  if (this->_mode == RF_OPMODE_RECEIVER) {
+    if (this->readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY) {
+      return true;
+    }    
   }
   return false;
 }
@@ -166,6 +168,7 @@ void Rfm69::setAutomode(uint8_t automode) {
 }
 
 void Rfm69::setMode(uint8_t mode) {
+  this->_mode = mode;
   this->writeReg(REG_OPMODE, mode);
 }
 

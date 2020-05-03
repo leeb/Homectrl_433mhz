@@ -2,7 +2,7 @@
  * Switches on and off a MIHO005 smart plug plus, while monitoring its messages.
  */
 
-// Replace with ID of your own device.
+// replace with ID of your own device.
 #define DEVICE_ID 0x123456
 
 #include <Arduino.h>
@@ -40,7 +40,7 @@ void setup() {
 
 
 /**
- * Alternating every five seconds this will send three on command and three off commands.
+ * Alternating every five seconds will send three on command and three off commands.
  * Polls for message payloads on each loops.
  */
 void loop() {
@@ -67,7 +67,7 @@ void loop() {
       mihome.modeTransmit();
       mihome.sendSwitchState(0x0, DEVICE_ID);
       mihome.modeReceive();
-      break;      
+      break;
   }
   
   delay(10);  

@@ -47,6 +47,7 @@ class Rfm69 {
   Hardware        _hardware;
   bool            _highPower;
   uint8_t         _pa;
+  uint8_t         _mode;
   SPIClass*       _spi;
   SPISettings     _spi_settings;
   uint8_t         _ss_pin;      // slave select
