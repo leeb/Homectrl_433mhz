@@ -17,9 +17,11 @@ Energenie::Energenie() {
   tx_repeats = 15;
 }
 
+
 void Energenie::begin(Rfm69& rfm69) {
   this->rfm69 = &rfm69;
 }
+
 
 void Energenie::modeTransmit() {
   rfm69->setModeStandby();

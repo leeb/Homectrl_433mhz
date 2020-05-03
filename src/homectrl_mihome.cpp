@@ -16,177 +16,31 @@
 
 namespace homectrl {
 
-/*
-void OpenThingsMsg::decodeHeader(uint8_t *buf) {
-  manufacturer_id = buf[1];
-  product_id = buf[2];  
-  sensor_id = buf[5] << 16 | buf[6] << 8 | buf[7];
-}
-
-
-void OpenThingsMsg::dump() {
-  char str[24];
-  
-  sprintf(str, "HDR: manufacturer: %02X", manufacturer_id);
-  Serial.print(str);
-  sprintf(str, "  product: %02X", product_id);
-  Serial.print(str);
-  sprintf(str, "  seed: %04X", reserved);
-  Serial.print(str);  
-  sprintf(str, "  sensor: %06X", sensor_id);
-  Serial.println(str);
-}
-
-
-void OpenThingsMsg::serialize(char *buf) {
-  sprintf(buf, "{\"m\":%d,\"p\":%d,\"r\":%d,\"s\":%d}", 
-    manufacturer_id, product_id, reserved, sensor_id);  
-}
-
-
-void MihomeAdapterPlusMsg::dump() {
-  // // dumpHdr(msg);
-  OpenThingsMsg::dump();
-  Serial.print("Voltage: ");
-  Serial.println(voltage);
-  Serial.print("Reactive power: ");
-  Serial.println(reactive_power);
-  Serial.print("Real Power: ");
-  Serial.println(real_power);
-  Serial.print("Frequency: ");
-  Serial.println((float)frequency / 256);
-  Serial.print("Switch state: ");
-  Serial.println(switch_state);
-}
-
-
-void MihomeAdapterPlusMsg::serialize(char *buf) {
-  OpenThingsMsg::serialize(buf);
-  sprintf(&buf[strlen(buf) - 1], ",\"f\":%.1f,\"v\":%d,\"pwr\":%d,\"rpwr\":%d,\"state\":%d}",
-    (float)frequency / 256, voltage, real_power, reactive_power, switch_state);
-
-  Serial.print("JSON size");
-  Serial.println(strlen(buf));
-}
-
-
-void MihomeAdapterPlusMsg::decode(uint8_t *buf, uint8_t len) {
-  uint8_t param, d_type, d_size, i = OPENTHINGS_HEADER_SIZE;
-  decodeHeader(buf);
-
-  while (i < len) {
-    param = buf[i];
-    i++;
-
-    if (param == 0x0) break;
-
-    d_type = buf[i] >> 4;
-    d_size = buf[i] & 0x0f;
-    i++;
-
-    switch (param) {
-      case OPENTHINGS_REAL_POWER:
-        if (d_type == 8 && d_size == 2)
-          real_power = buf[i] << 8 | buf[i + 1];
-        break;
-
-      case OPENTHINGS_REACTIVE_POWER:
-        if (d_type == 8 && d_size == 2)
-          reactive_power = buf[i] << 8 | buf[i + 1];
-        break;
-
-      case OPENTHINGS_VOLTAGE:
-        if (d_type == 0 && d_size == 1)
-          voltage = buf[i];
-        break;
-
-      case OPENTHINGS_FREQUENCY:
-        if (d_type == 2 && d_size == 2)
-          frequency = buf[i] << 8 | buf[i + 1];
-        break;
-
-      case OPENTHINGS_SWITCH_STATE:
-        switch_state = buf[i];
-        break;
-    }
-    i += d_size;
-  }   
-}
-
-
-void MihomeMonitorMsg::dump() {
- 
-}
-
-
-void MihomeMonitorMsg::decode(uint8_t *buf, uint8_t len) {
-  uint8_t param, d_type, d_size, i = OPENTHINGS_HEADER_SIZE;
-  decodeHeader(buf);
-
-  while (i < len) {
-    param = buf[i];
-    i++;
-
-    if (param == 0x0) break;
-
-    d_type = buf[i] >> 4;
-    d_size = buf[i] & 0x0f;
-    i++;
-
-    switch (param) {
-      case OPENTHINGS_REAL_POWER:
-        if (d_type == 8 && d_size == 2)
-          real_power = buf[i] << 8 | buf[i + 1];
-        break;
-
-      case OPENTHINGS_REACTIVE_POWER:
-        if (d_type == 8 && d_size == 2)
-          reactive_power = buf[i] << 8 | buf[i + 1];
-        break;
-
-      case OPENTHINGS_VOLTAGE:
-        if (d_type == 0 && d_size == 1)
-          voltage = buf[i];
-        break;
-
-      case OPENTHINGS_FREQUENCY:
-        if (d_type == 2 && d_size == 2)
-          frequency = buf[i] << 8 | buf[i + 1];
-        break;
-    }
-    i += d_size;
-  }
-}
-
-
-void MihomeSwitchStateMsg::dump() {
-
-}
-
-
-void MihomeSwitchStateMsg::decode(uint8_t *buf, uint8_t len) {
-  decodeHeader(buf);
-}
-
-*/
+static uint8_t _debug = 0;
 
 MiHome::MiHome() {
+
   onMsg([](OpenThingsHeader *msg) {
-    Serial.println("onMsg callback unassigned");
+    if (_debug) Serial.println("onMsg callback unassigned");
   });
   onSwitchStateMsg([](MiHomeSwitchStateMsg *msg) {
-    Serial.println("onSwitchStateMsg callback unassigned");
+    if (_debug) Serial.println("onSwitchStateMsg callback unassigned");
   });
   onAdapterPlusMsg([](MiHomeAdapterPlusMsg *msg) {
-    Serial.println("onAdapterPlusMsg callback unassigned");
+    if (_debug) Serial.println("onAdapterPlusMsg callback unassigned");
   });
   onMonitorMsg([](MiHomeMonitorMsg *msg) {
-    Serial.println("onMonitorMsg callback unassigned");
+    if (_debug) Serial.println("onMonitorMsg callback unassigned");
   });
 }
+
 
 void MiHome::begin(Rfm69& rfm69) {
   this->rfm69 = &rfm69;
+}
+
+void MiHome::setDebugLevel(uint8_t lvl) {
+  _debug = lvl;
 }
 
 void MiHome::modeTransmit() {
@@ -207,7 +61,6 @@ void MiHome::modeTransmit() {
 
   rfm69->waitFor(REG_IRQFLAGS1, RF_IRQFLAGS1_MODEREADY, true);
 }
-
 
 
 void MiHome::dumpHeader(OpenThingsHeader *hdr) {
@@ -238,12 +91,14 @@ void MiHome::dumpMessage(MiHomeAdapterPlusMsg *msg) {
   Serial.println(msg->switch_state);
 }
 
+
 void MiHome::dumpMessage(MiHomeSwitchStateMsg *msg) {
   Serial.println("SwitchState message");
   dumpHeader(msg);  
   Serial.print("Switch state: ");
   Serial.println(msg->switch_state);
 }
+
 
 void MiHome::dumpMessage(MiHomeMonitorMsg *msg) {
   Serial.println("Monitor message");
@@ -257,7 +112,6 @@ void MiHome::dumpMessage(MiHomeMonitorMsg *msg) {
   Serial.print("Frequency: ");
   Serial.println((float)msg->frequency / 256);
 }
-
 
 
 void MiHome::modeReceive() {
@@ -400,8 +254,10 @@ uint8_t MiHome::receivePayload() {
 
   len = rfm69->readFifo(buf);
 
-  Serial.print("Buffer received ");
-  Serial.println(len);
+  if (_debug) {
+    Serial.print("Buffer received ");
+    Serial.println(len);
+  }
 
   if (len < 8) return 0;
   if (len != buf[0] + 1) return 0;  // check header size matches size
@@ -414,7 +270,7 @@ uint8_t MiHome::receivePayload() {
   crc = (buf[len - 2] << 8) | buf[len - 1];
 
   if (crc != openthings_crc(buf, len - 2)) {
-    Serial.println("bad crc");
+    if (_debug) Serial.println("bad crc");
     return 0;
   }
 
@@ -435,13 +291,15 @@ uint8_t MiHome::receivePayload() {
       Serial.println("Unknown device");
   }
 
-  for (i = 0; i < len; i++) {
-    char str[5];
-    sprintf(str, "%02X ", buf[i]);
-    Serial.print(str);
-  }   
-  Serial.println("");
-  Serial.println("");
+  if (_debug) {
+    for (i = 0; i < len; i++) {
+      char str[5];
+      sprintf(str, "%02X ", buf[i]);
+      Serial.print(str);
+    }   
+    Serial.println("");
+    Serial.println("");
+  }
 }
 
 
@@ -490,13 +348,5 @@ void MiHome::sendSwitchState(uint8_t switch_state, uint32_t sensor_id, uint8_t p
   openthings_crypt(buf, len, msg.reserved);
   transmitPayload(buf, len);
 }
-
-
-
-
-
-
-
-
 
 } // namespace homectrl
