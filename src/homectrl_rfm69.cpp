@@ -14,13 +14,14 @@ Rfm69::Rfm69() :
   setPins(RFM69_SS_PIN, RFM69_RST_PIN, RFM69_DIO0_PIN);
 }
 
-void Rfm69::setPins(uint8_t ss_pin, uint8_t rst_pin, uint8_t dio0_pin) {
-  if (ss_pin) _ss_pin = ss_pin;
-  if (rst_pin) _rst_pin = rst_pin;
-  if (dio0_pin) _dio0_pin = dio0_pin;
-}
-
-void Rfm69::initialize(SPIClass* spi) {
+void Rfm69::begin(Hardware hw, SPIClass* spi) {
+  _hardware = hw;
+  _highPower = (_hardware == RFM69HW);
+  if (_highPower) {
+    setPowerAmp(RF_PALEVEL_PA0_OFF | RF_PALEVEL_PA1_ON | RF_PALEVEL_PA2_OFF);
+  } else {
+    setPowerAmp(RF_PALEVEL_PA0_ON | RF_PALEVEL_PA1_OFF | RF_PALEVEL_PA2_OFF);
+  }
   _spi_settings = SPISettings(_spi_clock, MSBFIRST, SPI_MODE0);
 
   pinMode(LED_BUILTIN, OUTPUT);
@@ -31,6 +32,16 @@ void Rfm69::initialize(SPIClass* spi) {
   if (spi != NULL) _spi = spi;
   _spi->begin();
   this->reset();
+}
+
+void Rfm69::setPins(uint8_t ss_pin, uint8_t rst_pin, uint8_t dio0_pin) {
+  if (ss_pin) _ss_pin = ss_pin;
+  if (rst_pin) _rst_pin = rst_pin;
+  if (dio0_pin) _dio0_pin = dio0_pin;
+}
+
+void Rfm69::setPowerAmp(uint8_t pa) {
+  _pa = pa;
 }
 
 void Rfm69::reset() {
@@ -146,7 +157,8 @@ void Rfm69::setSync(uint8_t cfg, uint32_t value) {
 }
 
 void Rfm69::setPower(uint8_t pwr) {
-  this->writeReg(REG_PALEVEL, pwr);
+  if (pwr > 31) pwr = 31;
+  this->writeReg(REG_PALEVEL, pwr | _pa);
 }
 
 void Rfm69::setAutomode(uint8_t automode) {
@@ -175,6 +187,13 @@ void Rfm69::setModeStandby() {
 
 void Rfm69::regDump() {
   char str[16];
+
+  Serial.print("High Power: ");
+  if (_highPower) {
+    Serial.println("True");
+  } else {
+    Serial.println("False");
+  }
 
   sprintf(str, "%02X", this->readReg(REG_PALEVEL));
   Serial.print("PALEVEL:       ");

@@ -185,7 +185,7 @@ MiHome::MiHome() {
   });
 }
 
-void MiHome::setRfm69(Rfm69& rfm69) {
+void MiHome::begin(Rfm69& rfm69) {
   this->rfm69 = &rfm69;
 }
 

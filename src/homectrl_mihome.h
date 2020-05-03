@@ -94,7 +94,7 @@ class MiHome {
 
  public:
   MiHome();
-  void setRfm69(Rfm69&);
+  void begin(Rfm69&);
   void modeTransmit();
   void modeReceive();
   uint8_t receivePayload();

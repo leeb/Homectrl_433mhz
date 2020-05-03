@@ -17,11 +17,12 @@ void setup() {
   // rfm69.setPins(NULL, NULL, NULL);
 
   // Initializes the RFM69 and SPI connection. 
+  // Specify the hardware type here so that the power amplifiers are set correctly.
   // An SPIClass can be passed to override the default when the hardware supports multiple interfaces.
-  rfm69.initialize();
+  rfm69.begin(homectrl::Rfm69::RFM69HW);
 
   // Now pass it to the energenie instance
-  energenie.setRfm69(rfm69);
+  energenie.begin(rfm69);
 }
 
 void loop() {

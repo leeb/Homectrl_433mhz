@@ -1,6 +1,6 @@
 /**
  *
- *
+ * TODO hc/hcw switch
  * 
  */
 
@@ -40,7 +40,13 @@
 namespace homectrl {
 
 class Rfm69 {
+ public:
+  enum Hardware { RFM69W = 1, RFM69HW };
+
  private:
+  Hardware        _hardware;
+  bool            _highPower;
+  uint8_t         _pa;
   SPIClass*       _spi;
   SPISettings     _spi_settings;
   uint8_t         _ss_pin;      // slave select
@@ -50,8 +56,9 @@ class Rfm69 {
 
  public:
   Rfm69();
+  void begin(Hardware = RFM69HW, SPIClass* = NULL);
   void setPins(uint8_t ss_pin = NULL, uint8_t rst_pin = NULL, uint8_t d100_pin = NULL);
-  void initialize(SPIClass* = NULL);
+  void setPowerAmp(uint8_t);
   void reset();
   void writeReg(uint8_t addr, uint8_t value);
   void writeFifo(uint8_t *data, uint8_t length);

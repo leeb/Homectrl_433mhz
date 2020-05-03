@@ -14,7 +14,7 @@ class Energenie {
 
  public:
   Energenie();
-  void setRfm69(Rfm69&);
+  void begin(Rfm69&);
  
   void modeTransmit();
   void modeReceive();

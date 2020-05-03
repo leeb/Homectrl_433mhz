@@ -16,10 +16,10 @@ void setup() {
 
   // Initializes the RFM69 and SPI connection. 
   // An SPIClass can be passed to override the default when the hardware supports multiple interfaces.
-  rfm69.initialize();
+  rfm69.begin();
 
   // Now pass it to the mihome instance
-  mihome.setRfm69(rfm69);
+  mihome.begin(rfm69);
 
   // Let's connect the callback events for each message
   // back to the internal function which will dump their
