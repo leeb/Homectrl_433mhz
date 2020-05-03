@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <homectrl_433mhz.h>
 
+// replace with ID of your own device.
 #define DEVICE_ID 0x123456
 
 homectrl::Rfm69 rfm69;

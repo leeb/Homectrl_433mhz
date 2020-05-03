@@ -1,7 +1,5 @@
 #include <Arduino.h>
-
 #include "homectrl_openthings.h"
-
 
 namespace homectrl {
 

@@ -14,7 +14,7 @@ namespace homectrl {
 #define MIHOME_MONITOR              0x01
 #define MIHOME_ADAPTER_PLUS         0x02
 
-
+// Status message from MIHO004 Smart Monitor Plug
 typedef struct MiHomeMonitorMsg : OpenThingsHeader {
   int16_t   real_power;
   int16_t   reactive_power;
@@ -23,6 +23,7 @@ typedef struct MiHomeMonitorMsg : OpenThingsHeader {
   bool      join;  
 } MiHomeMonitorMsg;
 
+// Status message from MIHO005 Smart Plug Plus
 typedef struct MiHomeAdapterPlusMsg : OpenThingsHeader {
   int16_t   real_power;
   int16_t   reactive_power;
@@ -32,66 +33,13 @@ typedef struct MiHomeAdapterPlusMsg : OpenThingsHeader {
   bool      join;  
 } MiHomeAdapterPlusMsg;
 
+// Update message from MIHO005 Smart Plug Plus when switch state changes
 typedef struct MiHomeSwitchStateMsg : OpenThingsHeader {
   uint8_t   switch_state;
 } MiHomeSwitchStateMsg;
 
 
-
-class OpenThingsMsg {
- public:
-  uint8_t   size;
-  uint8_t   manufacturer_id;
-  uint8_t   product_id;
-  uint16_t  reserved;
-  uint32_t  sensor_id;
-
-  virtual void dump();
-  virtual void serialize(char *buf);
-  void decodeHeader(uint8_t *buf);
-};
-
-/*
-class MihomeMonitorMsg : public OpenThingsMsg {
- public:
-  int16_t   real_power;
-  int16_t   reactive_power;
-  uint8_t   voltage;
-  uint16_t  frequency;
-  bool      join;
-
-  void dump();
-  // void serialize(char *buf);    
-  void decode(uint8_t *buf, uint8_t len);
-};
-
-class MihomeAdapterPlusMsg : public OpenThingsMsg {
- public:
-  int16_t   real_power;
-  int16_t   reactive_power;
-  uint8_t   voltage;
-  uint16_t  frequency;
-  uint8_t   switch_state;
-  bool      join;  
-
-  void dump();
-  void serialize(char *buf);    
-  void decode(uint8_t *buf, uint8_t len);
-};
-
-class MihomeSwitchStateMsg : public OpenThingsMsg {
- public:
-  uint8_t   switch_state;
-
-  void dump();
-  void decode(uint8_t *buf, uint8_t len);
-};
-*/
-
 class MiHome {
- private:
-  Rfm69     *rfm69;
-
  public:
   MiHome();
   void begin(Rfm69&);
@@ -114,6 +62,8 @@ class MiHome {
   void onMonitorMsg(std::function<void(MiHomeMonitorMsg*)> cb) { cb_monitor_msg = cb; };
 
  private:
+  Rfm69     *rfm69;
+
   void receiveHeader(uint8_t*, OpenThingsHeader*);
   void receiveSwitchState(uint8_t*, uint8_t);
   void receiveAdapterPlus(uint8_t*, uint8_t);

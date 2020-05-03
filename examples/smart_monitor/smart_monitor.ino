@@ -45,6 +45,7 @@ void loop() {
   if (rfm69.isPayloadReady()) {
     Serial.println("*** Payload ready ***");
     mihome.receivePayload();
+    Serial.println("");
   }
   delay(10);
 }
