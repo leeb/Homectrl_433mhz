@@ -35,7 +35,7 @@ void Rfm69::begin(Hardware hw, SPIClass* spi) {
   }
   _spi_settings = SPISettings(_spi_clock, MSBFIRST, SPI_MODE0);
 
-  pinMode(LED_BUILTIN, OUTPUT);
+  // pinMode(LED_BUILTIN, OUTPUT);
   pinMode(_rst_pin, OUTPUT);
   pinMode(_ss_pin, OUTPUT);
   digitalWrite(_ss_pin, HIGH);
@@ -56,12 +56,12 @@ void Rfm69::setPowerAmp(uint8_t pa) {
 }
 
 void Rfm69::reset() {
-  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+  // digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(_rst_pin, HIGH);
   delay(150);
   digitalWrite(_rst_pin, LOW);
   delay(100);
-  digitalWrite(LED_BUILTIN, LOW);   // turn the LED on (HIGH is the voltage level)
+  // digitalWrite(LED_BUILTIN, LOW);   // turn the LED on (HIGH is the voltage level)
 }
 
 void Rfm69::writeReg(uint8_t addr, uint8_t value) {
