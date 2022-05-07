@@ -25,21 +25,29 @@
 
 namespace homectrl {
 
-static uint8_t _debug = 0;
+// #define _MIHOME_DEBUG_
 
 MiHome::MiHome() {
 
   onMsg([](OpenThingsHeader *msg) {
-    if (_debug) Serial.println("onMsg callback unassigned");
+    #ifdef _MIHOME_DEBUG_
+    Serial.println("onMsg callback unassigned");
+    #endif
   });
   onSwitchStateMsg([](MiHomeSwitchStateMsg *msg) {
-    if (_debug) Serial.println("onSwitchStateMsg callback unassigned");
+    #ifdef _MIHOME_DEBUG_
+    Serial.println("onSwitchStateMsg callback unassigned");
+    #endif
   });
   onAdapterPlusMsg([](MiHomeAdapterPlusMsg *msg) {
-    if (_debug) Serial.println("onAdapterPlusMsg callback unassigned");
+    #ifdef _MIHOME_DEBUG_
+    Serial.println("onAdapterPlusMsg callback unassigned");
+    #endif
   });
   onMonitorMsg([](MiHomeMonitorMsg *msg) {
-    if (_debug) Serial.println("onMonitorMsg callback unassigned");
+    #ifdef _MIHOME_DEBUG_
+    Serial.println("onMonitorMsg callback unassigned");
+    #endif
   });
 }
 
@@ -48,9 +56,6 @@ void MiHome::begin(Rfm69& rfm69) {
   this->rfm69 = &rfm69;
 }
 
-void MiHome::setDebugLevel(uint8_t lvl) {
-  _debug = lvl;
-}
 
 void MiHome::modeTransmit() {
   rfm69->setModeStandby();
@@ -66,6 +71,8 @@ void MiHome::modeTransmit() {
 
   rfm69->setPacketConfig(RF_PACKET1_FORMAT_VARIABLE | RF_PACKET1_DCFREE_MANCHESTER, RF_PACKET2_AUTORXRESTART_ON | RF_PACKET2_AES_OFF);
   rfm69->setFifoThreshold(RF_FIFOTHRESH_TXSTART_FIFONOTEMPTY);
+
+  // switch to trasnmit if fifo not empty, back to standby once complete
   rfm69->setAutomode(RF_AUTOMODES_ENTER_FIFONOTEMPTY | RF_AUTOMODES_EXIT_PACKETSENT | RF_AUTOMODES_INTERMEDIATE_TRANSMITTER);
 
   rfm69->waitFor(REG_IRQFLAGS1, RF_IRQFLAGS1_MODEREADY, true);
@@ -73,6 +80,7 @@ void MiHome::modeTransmit() {
 
 
 void MiHome::dumpHeader(OpenThingsHeader *hdr) {
+  #ifdef _MIHOME_DEBUG_
   char str[24];
   
   sprintf(str, "HDR: manufacturer: %02X", hdr->manufacturer_id);
@@ -83,9 +91,12 @@ void MiHome::dumpHeader(OpenThingsHeader *hdr) {
   Serial.print(str);  
   sprintf(str, "  sensor: %06X", hdr->sensor_id);
   Serial.println(str);
+  #endif
 }
 
+
 void MiHome::dumpMessage(MiHomeAdapterPlusMsg *msg) {
+  #ifdef _MIHOME_DEBUG_
   Serial.println("AdapterPlus message");
   dumpHeader(msg);
   Serial.print("Voltage: ");
@@ -98,18 +109,22 @@ void MiHome::dumpMessage(MiHomeAdapterPlusMsg *msg) {
   Serial.println((float)msg->frequency / 256);
   Serial.print("Switch state: ");
   Serial.println(msg->switch_state);
+  #endif
 }
 
 
 void MiHome::dumpMessage(MiHomeSwitchStateMsg *msg) {
+  #ifdef _MIHOME_DEBUG_
   Serial.println("SwitchState message");
   dumpHeader(msg);  
   Serial.print("Switch state: ");
   Serial.println(msg->switch_state);
+  #endif
 }
 
 
 void MiHome::dumpMessage(MiHomeMonitorMsg *msg) {
+  #ifdef _MIHOME_DEBUG_
   Serial.println("Monitor message");
   dumpHeader(msg);
   Serial.print("Voltage: ");
@@ -120,6 +135,7 @@ void MiHome::dumpMessage(MiHomeMonitorMsg *msg) {
   Serial.println(msg->real_power);
   Serial.print("Frequency: ");
   Serial.println((float)msg->frequency / 256);
+  #endif
 }
 
 
@@ -129,10 +145,10 @@ void MiHome::modeReceive() {
   rfm69->setModulation(RF_DATAMODUL_MODULATIONTYPE_FSK);
   rfm69->setFrequencyDeviation(RF_FDEV_5000);
   rfm69->setFrequency(RF_FRF_OPENTHINGS);
+  rfm69->setBandwidth(RF_RXBW_60);
 
-  rfm69->writeReg(REG_AFCCTRL, 0x00);
-  rfm69->writeReg(REG_LNA, RF_LNA_ZIN_50);
-  rfm69->writeReg(REG_RXBW, RF_RXBW_EXP_3 | RF_RXBW_DCCFREQ_010);
+  //rfm69->writeReg(REG_AFCCTRL, 0x00);
+  //rfm69->writeReg(REG_LNA, RF_LNA_ZIN_50);
 
   rfm69->setBitrate(RF_BITRATE_4800);
   rfm69->setPreamble(3);
@@ -263,10 +279,8 @@ uint8_t MiHome::receivePayload() {
 
   len = rfm69->readFifo(buf);
 
-  if (_debug) {
-    Serial.print("Buffer received ");
-    Serial.println(len);
-  }
+  // Serial.print("Buffer received ");
+  // Serial.println(len);
 
   if (len < 8) return 0;
   if (len != buf[0] + 1) return 0;  // check header size matches size
@@ -279,7 +293,9 @@ uint8_t MiHome::receivePayload() {
   crc = (buf[len - 2] << 8) | buf[len - 1];
 
   if (crc != openthings_crc(buf, len - 2)) {
-    if (_debug) Serial.println("bad crc");
+    #ifdef _MIHOME_DEBUG_
+    Serial.println("bad crc");
+    #endif
     return 0;
   }
 
@@ -300,15 +316,19 @@ uint8_t MiHome::receivePayload() {
       Serial.println("Unknown device");
   }
 
-  if (_debug) {
-    for (i = 0; i < len; i++) {
-      char str[5];
-      sprintf(str, "%02X ", buf[i]);
-      Serial.print(str);
-    }   
-    Serial.println("");
-    Serial.println("");
-  }
+  #ifdef _MIHOME_DEBUG_
+  /*
+  for (i = 0; i < len; i++) {
+    char str[5];
+    sprintf(str, "%02X ", buf[i]);
+    Serial.print(str);
+  }   
+  Serial.println("");
+  Serial.println("");
+  */
+  #endif
+
+  return len;
 }
 
 
@@ -331,7 +351,6 @@ void MiHome::sendSwitchState(uint8_t switch_state, uint32_t sensor_id, uint8_t p
   msg.sensor_id = sensor_id;
   msg.reserved = (uint16_t)millis();
   msg.switch_state = switch_state ? 0 : 1;
-
 
   buf[1] = msg.manufacturer_id;
   buf[2] = msg.product_id;

@@ -7,9 +7,19 @@
 
 // replace with ID of your own device.
 #define DEVICE_ID 0x123456
+//#define DEVICE_ID 0x00372f  // test adapter
 
 homectrl::Rfm69 rfm69;
 homectrl::Energenie energenie;
+
+void on_energenie_msg(homectrl::EnergenieMsg *msg) {
+  Serial.println("Energenie packet decoded");
+  Serial.print("Address: ");
+  Serial.println(msg->address, HEX);
+  Serial.print("State: ");
+  Serial.println(msg->state, HEX);
+}
+
 
 void setup() {
   Serial.begin(115200);
@@ -24,24 +34,36 @@ void setup() {
 
   // Now pass it to the energenie instance
   energenie.begin(rfm69);
+  energenie.modeReceive();
+
+  energenie.onEnergenieMsg(on_energenie_msg);
+
+  Serial.println("Ready...");
 }
+
 
 void loop() {
-  Serial.println("Turn device on");
-  energenie.modeTransmit();
-  energenie.sendState(0x0, DEVICE_ID);
-  delay(100);
-  energenie.modeReceive();
+  static int count;
 
-  delay(3000);
+  if (rfm69.isPayloadReady()) {
+    Serial.println("Payload ready");
+    energenie.receivePayload();
+  }  
 
-  Serial.println("Turn device off");
-  energenie.modeTransmit();
-  energenie.sendState(0x1, DEVICE_ID);
-  delay(100);
-  energenie.modeReceive();
+  if ((count & 0x03ff) == 0x0080) {
+    Serial.println("Turn device on");
+    energenie.modeTransmit();
+    energenie.sendState(0x0, DEVICE_ID);
+    energenie.modeReceive();    
+  }
 
-  delay(3000);
-}
-
+  if ((count & 0x03ff) == 0x0280) {
+    Serial.println("Turn device off");
+    energenie.modeTransmit();
+    energenie.sendState(0x1, DEVICE_ID);
+    energenie.modeReceive();
+  }
   
+  count++;
+  delay(10);
+}

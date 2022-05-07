@@ -17,11 +17,27 @@
 #ifndef _HOMECTRL_ENERGENIE_H_
 #define _HOMECTRL_ENERGENIE_H_
 
+#include <functional>
+
 #include "homectrl_rfm69.h"
 
 namespace homectrl {
 
+// SDR tuning results
+//   Gateway on 433.92
+//   Remote on 433.98
+// Frequency calculator : hz * << 11 / 125
+//   433.92 = 0x6C7AE1
+//   433.98 = 0x6C7EB8
 #define RF_FRF_ENERGENIE           0x6C7AE1    // 433.92mhz
+//#define RF_FRF_ENERGENIE           0x6C7E00    
+
+
+typedef struct EnergenieMsg {
+  uint32_t  address;    // 20 bits for address
+  uint8_t   state;      // 4 bits for switch state
+} EnergenieMsg;
+
 
 /**
  * Interface for Legacy Energenie devices which receive commands using OOK modulation.
@@ -41,7 +57,13 @@ class Energenie {
   void modeReceive();
 
   void sendState(uint8_t state, uint32_t addr);
+  uint8_t receivePayload();
   void transmitPayload(uint8_t *buf);
+
+  void onEnergenieMsg(std::function<void(EnergenieMsg*)> cb) { cb_energenie_msg = cb; };
+
+ private:
+  std::function<void(EnergenieMsg*)> cb_energenie_msg;
 };
   
 } // namespace homectrl

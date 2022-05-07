@@ -113,7 +113,7 @@ bool Rfm69::isPayloadReady() {
   return false;
 }
 
-bool Rfm69::waitFor(uint8_t addr, uint8_t mask, uint8_t val, uint8_t timeout) {
+bool Rfm69::waitFor(uint8_t addr, uint8_t mask, uint8_t val, int16_t timeout) {
   while (timeout >= 0) {
     uint8_t ret = this->readReg(addr);
     if ((ret & mask) == (val ? mask : 0)) return true;
@@ -148,6 +148,10 @@ void Rfm69::setFrequency(uint32_t freq) {
   this->writeReg(REG_FRFLSB, freq & 0xff);
 }
 
+void Rfm69::setBandwidth(uint8_t bw) {
+  this->writeReg(REG_RXBW, bw);
+}
+
 void Rfm69::setPayloadLength(uint8_t value) {
   this->writeReg(REG_PAYLOADLENGTH, value);
 }
@@ -161,12 +165,24 @@ void Rfm69::setPacketConfig(uint8_t cfg1, uint8_t cfg2) {
   this->writeReg(REG_PACKETCONFIG2, cfg2);
 }
 
-void Rfm69::setSync(uint8_t cfg, uint32_t value) {
+void Rfm69::setSync(uint8_t cfg, uint32_t v1) {
   this->writeReg(REG_SYNCCONFIG, cfg);
-  this->writeReg(REG_SYNCVALUE1, value >> 24 & 0xff);
-  this->writeReg(REG_SYNCVALUE2, value >> 16 & 0xff);
-  this->writeReg(REG_SYNCVALUE3, value >> 8 & 0xff);
-  this->writeReg(REG_SYNCVALUE4, value >> 0 & 0xff);  
+  this->writeReg(REG_SYNCVALUE1, v1 >> 24 & 0xff);
+  this->writeReg(REG_SYNCVALUE2, v1 >> 16 & 0xff);
+  this->writeReg(REG_SYNCVALUE3, v1 >> 8 & 0xff);
+  this->writeReg(REG_SYNCVALUE4, v1 >> 0 & 0xff);  
+}
+
+void Rfm69::setSync(uint8_t cfg, uint32_t v1, uint32_t v2) {
+  this->writeReg(REG_SYNCCONFIG, cfg);
+  this->writeReg(REG_SYNCVALUE1, v1 >> 24 & 0xff);
+  this->writeReg(REG_SYNCVALUE2, v1 >> 16 & 0xff);
+  this->writeReg(REG_SYNCVALUE3, v1 >> 8 & 0xff);
+  this->writeReg(REG_SYNCVALUE4, v1 >> 0 & 0xff);  
+  this->writeReg(REG_SYNCVALUE5, v2 >> 24 & 0xff);
+  this->writeReg(REG_SYNCVALUE6, v2 >> 16 & 0xff);
+  this->writeReg(REG_SYNCVALUE7, v2 >> 8 & 0xff);
+  this->writeReg(REG_SYNCVALUE8, v2 >> 0 & 0xff);  
 }
 
 void Rfm69::setPower(uint8_t pwr) {
@@ -200,7 +216,7 @@ void Rfm69::setModeStandby() {
 }
 
 void Rfm69::regDump() {
-  char str[16];
+  char str[32];
 
   Serial.print("High Power: ");
   if (_highPower) {
@@ -210,34 +226,36 @@ void Rfm69::regDump() {
   }
 
   sprintf(str, "%02X", this->readReg(REG_PALEVEL));
-  Serial.print("PALEVEL:       ");
+  Serial.print("PALEVEL:      ");
   Serial.println(str);
 
   sprintf(str, "%02X%02X", this->readReg(REG_FDEVMSB), this->readReg(REG_FDEVLSB));
-  Serial.print("FDEV:          ");
+  Serial.print("FDEV:         ");
   Serial.println(str);
 
-  Serial.print("RXBW:          ");
+  Serial.print("RXBW:         ");
   Serial.println(this->readReg(REG_RXBW));
 
   sprintf(str, "%02X%02X%02X", this->readReg(REG_FRFMSB), this->readReg(REG_FRFMID), this->readReg(REG_FRFLSB));
-  Serial.print("FRF:           ");
+  Serial.print("FRF:          ");
   Serial.println(str);
 
   sprintf(str, "%02X %02X", this->readReg(REG_IRQFLAGS1), this->readReg(REG_IRQFLAGS2));
-  Serial.print("IRQFLAGS:      ");
+  Serial.print("IRQFLAGS:     ");
   Serial.println(str);
   
   sprintf(str, "%02X", this->readReg(REG_SYNCCONFIG));
-  Serial.print("SYNCCONFIG:    ");
+  Serial.print("SYNCCONFIG:   ");
   Serial.println(str);
 
-  sprintf(str, "%02X %02X", this->readReg(REG_SYNCVALUE1), this->readReg(REG_SYNCVALUE1));
-  Serial.print("SYNCVALUE:     ");
+  sprintf(str, "%02X %02X %02X %02X %02X %02X %02X %02X", 
+    this->readReg(REG_SYNCVALUE1), this->readReg(REG_SYNCVALUE2), this->readReg(REG_SYNCVALUE3), this->readReg(REG_SYNCVALUE4),
+    this->readReg(REG_SYNCVALUE5), this->readReg(REG_SYNCVALUE6), this->readReg(REG_SYNCVALUE7), this->readReg(REG_SYNCVALUE8));
+  Serial.print("SYNCVALUE:    ");
   Serial.println(str);
 
   sprintf(str, "%02X %02x", this->readReg(REG_PACKETCONFIG1), this->readReg(REG_PACKETCONFIG2));
-  Serial.print("PACKETCONFIG:  ");
+  Serial.print("PACKETCONFIG: ");
   Serial.println(str);
 }
 

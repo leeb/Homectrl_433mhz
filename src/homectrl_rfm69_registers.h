@@ -997,8 +997,8 @@
 #define RF_PACKET1_DCFREE_MANCHESTER  0x20
 #define RF_PACKET1_DCFREE_WHITENING   0x40
 
-#define RF_PACKET1_CRC_ON             0x10  // Default
 #define RF_PACKET1_CRC_OFF            0x00
+#define RF_PACKET1_CRC_ON             0x10  // Default
 
 #define RF_PACKET1_CRCAUTOCLEAR_ON    0x00  // Default
 #define RF_PACKET1_CRCAUTOCLEAR_OFF   0x08

@@ -11,6 +11,10 @@
 
 #include "homectrl_rfm69_registers.h"
 
+#define RF_RXBW_60         0x43
+#define RF_RXBW_120        0x41
+
+
 #define RF_FDEV_5000       0x0052
 
 #define RF_BITRATE_1200    0x682B
@@ -66,17 +70,19 @@ class Rfm69 {
   uint8_t readReg(uint8_t addr);
   uint8_t readFifo(uint8_t *buf);
   bool isPayloadReady();
-  bool waitFor(uint8_t addr, uint8_t mask, uint8_t val, uint8_t timeout=500);
+  bool waitFor(uint8_t addr, uint8_t mask, uint8_t val, int16_t timeout=500);
 
   void setModulation(uint8_t data);
   void setPreamble(uint16_t data);
   void setBitrate(uint16_t bps);
   void setFrequencyDeviation(uint16_t freq);
   void setFrequency(uint32_t freq);
+  void setBandwidth(uint8_t bw);
   void setPayloadLength(uint8_t value);
   void setFifoThreshold(uint8_t value);
   void setPacketConfig(uint8_t cfg1, uint8_t cfg2);
-  void setSync(uint8_t cfg, uint32_t value);
+  void setSync(uint8_t cfg, uint32_t);
+  void setSync(uint8_t cfg, uint32_t, uint32_t);
   void setPower(uint8_t pwr);
   void setAutomode(uint8_t automode);
 
